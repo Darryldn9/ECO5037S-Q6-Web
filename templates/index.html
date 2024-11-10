@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquidity Pool and DEX Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8 text-center">Liquidity Pool and DEX Simulation</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Fund Creator</h2>
+                <p class="mb-4">Creator Address: <span class="font-mono">{{ creator_address }}</span></p>
+                <button id="fundCreatorBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    Fund Creator and Create UCTZAR
+                </button>
+                <p id="fundCreatorResult" class="mt-4 text-sm"></p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Add Liquidity</h2>
+                <form id="addLiquidityForm">
+                    <div class="mb-4">
+                        <label for="lpAddress" class="block text-sm font-medium text-gray-700">LP Address</label>
+                        <input type="text" id="lpAddress" name="lp_address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="mb-4">
+                        <label for="algoAmount" class="block text-sm font-medium text-gray-700">ALGO Amount</label>
+                        <input type="number" id="algoAmount" name="algo_amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="mb-4">
+                        <label for="uctzarAmount" class="block text-sm font-medium text-gray-700">UCTZAR Amount</label>
+                        <input type="number" id="uctzarAmount" name="uctzar_amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    </div>
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                        Add Liquidity
+                    </button>
+                </form>
+                <p id="addLiquidityResult" class="mt-4 text-sm"></p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Swap Tokens</h2>
+                <form id="swapForm">
+                    <div class="mb-4">
+                        <label for="traderAddress" class="block text-sm font-medium text-gray-700">Trader Address</label>
+                        <input type="text" id="traderAddress" name="trader_address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="mb-4">
+                        <label for="amountIn" class="block text-sm font-medium text-gray-700">Amount In</label>
+                        <input type="number" id="amountIn" name="amount_in" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="mb-4">
+                        <label for="assetIn" class="block text-sm font-medium text-gray-700">Asset In</label>
+                        <select id="assetIn" name="asset_in" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <option value="ALGO">ALGO</option>
+                            <option value="UCTZAR">UCTZAR</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded">
+                        Swap Tokens
+                    </button>
+                </form>
+                <p id="swapResult" class="mt-4 text-sm"></p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Pool Information</h2>
+                <button id="refreshPoolInfoBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded mb-4">
+                    Refresh Pool Info
+                </button>
+                <div id="poolInfo" class="text-sm"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('fundCreatorBtn').addEventListener('click', async () => {
+            const response = await fetch('/fund_creator', { method: 'POST' });
+            const result = await response.json();
+            document.getElementById('fundCreatorResult').textContent = result.message || result.error;
+        });
+
+        document.getElementById('addLiquidityForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const response = await fetch('/add_liquidity', { method: 'POST', body: formData });
+            const result = await response.json();
+            document.getElementById('addLiquidityResult').textContent = result.message || result.error;
+        });
+
+        document.getElementById('swapForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const response = await fetch('/swap', { method: 'POST', body: formData });
+            const result = await response.json();
+            document.getElementById('swapResult').textContent = result.message || result.error;
+        });
+
+        async function refreshPoolInfo() {
+            const response = await fetch('/pool_info');
+            const result = await response.json();
+            if (result.error) {
+                document.getElementById('poolInfo').textContent = result.error;
+            } else {
+                document.getElementById('poolInfo').innerHTML = `
+                    <p>ALGO Amount: ${result.algo_amount}</p>
+                    <p>UCTZAR Amount: ${result.uctzar_amount}</p>
+                    <p>LP Tokens: ${result.lp_tokens}</p>
+                    <p>Fees: ${result.fees}</p>
+                `;
+            }
+        }
+
+        document.getElementById('refreshPoolInfoBtn').addEventListener('click', refreshPoolInfo);
+
+        // Refresh pool info on page load
+        refreshPoolInfo();
+    </script>
+</body>
+</html>
