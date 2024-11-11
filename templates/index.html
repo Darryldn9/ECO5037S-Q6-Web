@@ -12,8 +12,8 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold mb-4">Fund Creator</h2>
-                <p class="mb-4">Creator Address: <span class="font-mono">{{ creator_address }}</span></p>
+                <h2 class="text-xl font-semibold mb-4">1. Initialize Simulation</h2>
+                <p class="mb-4">Creator Address: <span class="font-mono text-sm">{{ creator_address }}</span></p>
                 <button id="fundCreatorBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                     Fund Creator and Create UCTZAR
                 </button>
@@ -21,19 +21,22 @@
             </div>
 
             <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold mb-4">Add Liquidity</h2>
+                <h2 class="text-xl font-semibold mb-4">2. Add Liquidity</h2>
                 <form id="addLiquidityForm">
                     <div class="mb-4">
                         <label for="lpAddress" class="block text-sm font-medium text-gray-700">LP Address</label>
-                        <input type="text" id="lpAddress" name="lp_address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <select id="lpAddress" name="lp_address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <option value="{{ lp1_address }}">LP1: {{ lp1_address }}</option>
+                            <option value="{{ lp2_address }}">LP2: {{ lp2_address }}</option>
+                        </select>
                     </div>
                     <div class="mb-4">
                         <label for="algoAmount" class="block text-sm font-medium text-gray-700">ALGO Amount</label>
-                        <input type="number" id="algoAmount" name="algo_amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <input type="number" id="algoAmount" name="algo_amount" value="50000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                     </div>
                     <div class="mb-4">
                         <label for="uctzarAmount" class="block text-sm font-medium text-gray-700">UCTZAR Amount</label>
-                        <input type="number" id="uctzarAmount" name="uctzar_amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <input type="number" id="uctzarAmount" name="uctzar_amount" value="100000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                     </div>
                     <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
                         Add Liquidity
@@ -43,15 +46,18 @@
             </div>
 
             <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold mb-4">Swap Tokens</h2>
+                <h2 class="text-xl font-semibold mb-4">3. Swap Tokens</h2>
                 <form id="swapForm">
                     <div class="mb-4">
                         <label for="traderAddress" class="block text-sm font-medium text-gray-700">Trader Address</label>
-                        <input type="text" id="traderAddress" name="trader_address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <select id="traderAddress" name="trader_address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <option value="{{ trader1_address }}">Trader1: {{ trader1_address }}</option>
+                            <option value="{{ trader2_address }}">Trader2: {{ trader2_address }}</option>
+                        </select>
                     </div>
                     <div class="mb-4">
                         <label for="amountIn" class="block text-sm font-medium text-gray-700">Amount In</label>
-                        <input type="number" id="amountIn" name="amount_in" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <input type="number" id="amountIn" name="amount_in" value="10000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                     </div>
                     <div class="mb-4">
                         <label for="assetIn" class="block text-sm font-medium text-gray-700">Asset In</label>
@@ -68,20 +74,44 @@
             </div>
 
             <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold mb-4">Pool Information</h2>
+                <h2 class="text-xl font-semibold mb-4">4. Pool Information</h2>
                 <button id="refreshPoolInfoBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded mb-4">
                     Refresh Pool Info
                 </button>
                 <div id="poolInfo" class="text-sm"></div>
             </div>
         </div>
+
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Account Balances</h2>
+                <button id="refreshBalancesBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded mb-4">
+                    Refresh Balances
+                </button>
+                <div id="accountBalances" class="text-sm"></div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
+                <button id="refreshHistoryBtn" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded mb-4">
+                    Refresh History
+                </button>
+                <div id="transactionHistory" class="text-sm max-h-64 overflow-y-auto"></div>
+            </div>
+        </div>
     </div>
 
     <script>
+        let uctzarId = null;
+
         document.getElementById('fundCreatorBtn').addEventListener('click', async () => {
             const response = await fetch('/fund_creator', { method: 'POST' });
             const result = await response.json();
             document.getElementById('fundCreatorResult').textContent = result.message || result.error;
+            if (result.uctzar_id) {
+                uctzarId = result.uctzar_id;
+            }
+            refreshAll();
         });
 
         document.getElementById('addLiquidityForm').addEventListener('submit', async (e) => {
@@ -90,6 +120,7 @@
             const response = await fetch('/add_liquidity', { method: 'POST', body: formData });
             const result = await response.json();
             document.getElementById('addLiquidityResult').textContent = result.message || result.error;
+            refreshAll();
         });
 
         document.getElementById('swapForm').addEventListener('submit', async (e) => {
@@ -98,6 +129,7 @@
             const response = await fetch('/swap', { method: 'POST', body: formData });
             const result = await response.json();
             document.getElementById('swapResult').textContent = result.message || result.error;
+            refreshAll();
         });
 
         async function refreshPoolInfo() {
@@ -107,18 +139,65 @@
                 document.getElementById('poolInfo').textContent = result.error;
             } else {
                 document.getElementById('poolInfo').innerHTML = `
-                    <p>ALGO Amount: ${result.algo_amount}</p>
-                    <p>UCTZAR Amount: ${result.uctzar_amount}</p>
-                    <p>LP Tokens: ${result.lp_tokens}</p>
-                    <p>Fees: ${result.fees}</p>
+                    <p>ALGO Amount: ${result.algo_amount} microALGOs</p>
+                    <p>UCTZAR Amount: ${result.uctzar_amount} microUCTZAR</p>
+                    <p>LP Tokens: ${result.lp_tokens.toFixed(6)}</p>
+                    <p>Fees: ${result.fees} microALGOs</p>
                 `;
             }
         }
 
-        document.getElementById('refreshPoolInfoBtn').addEventListener('click', refreshPoolInfo);
+        async function refreshAccountBalances() {
+            const response = await fetch('/account_balances');
+            const balances = await response.json();
+            let balancesHtml = '';
+            for (const [address, balance] of Object.entries(balances)) {
+                balancesHtml += `
+                    <div class="mb-2">
+                        <p class="font-semibold">${getAddressName(address)}</p>
+                        <p>ALGO: ${balance.algo} microALGOs</p>
+                        <p>UCTZAR: ${balance.uctzar} microUCTZAR</p>
+                    </div>
+                `;
+            }
+            document.getElementById('accountBalances').innerHTML = balancesHtml;
+        }
 
-        // Refresh pool info on page load
-        refreshPoolInfo();
+        async function refreshTransactionHistory() {
+            const response = await fetch('/transaction_history');
+            const history = await response.json();
+            let historyHtml = '<ul class="list-disc pl-5">';
+            for (const transaction of history) {
+                historyHtml += `<li>${transaction}</li>`;
+            }
+            historyHtml += '</ul>';
+            document.getElementById('transactionHistory').innerHTML = historyHtml;
+        }
+
+        function getAddressName(address) {
+            const addressMap = {
+                '{{ creator_address }}': 'Creator',
+                '{{ lp1_address }}': 'LP1',
+                '{{ lp2_address }}': 'LP2',
+                '{{ trader1_address }}': 'Trader1',
+                '{{ trader2_address }}': 'Trader2',
+                '{{ pool_address }}': 'Pool'
+            };
+            return addressMap[address] || 'Unknown';
+        }
+
+        function refreshAll() {
+            refreshPoolInfo();
+            refreshAccountBalances();
+            refreshTransactionHistory();
+        }
+
+        document.getElementById('refreshPoolInfoBtn').addEventListener('click', refreshPoolInfo);
+        document.getElementById('refreshBalancesBtn').addEventListener('click', refreshAccountBalances);
+        document.getElementById('refreshHistoryBtn').addEventListener('click', refreshTransactionHistory);
+
+        // Refresh all information on page load
+        refreshAll();
     </script>
 </body>
 </html>

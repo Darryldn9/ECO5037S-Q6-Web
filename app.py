@@ -175,11 +175,18 @@ trader2_private_key, trader2_address = create_account()
 pool_private_key, pool_address = create_account()
 uctzar_id = None
 pool = None
+transaction_history = []
 
 
 @app.route('/')
 def index():
-    return render_template('index.html', creator_address=creator_address)
+    return render_template('index.html',
+                           creator_address=creator_address,
+                           lp1_address=lp1_address,
+                           lp2_address=lp2_address,
+                           trader1_address=trader1_address,
+                           trader2_address=trader2_address,
+                           pool_address=pool_address)
 
 
 @app.route('/fund_creator', methods=['POST'])
@@ -198,17 +205,20 @@ def fund_creator():
     for address in [lp1_address, lp2_address, trader1_address, trader2_address, pool_address]:
         txn = PaymentTxn(creator_address, params, address, funding_amount)
         signed_txn = txn.sign(creator_private_key)
-        client.send_transaction(signed_txn)
-        wait_for_confirmation(client, signed_txn.get_txid())
+        tx_id = client.send_transaction(signed_txn)
+        wait_for_confirmation(client, tx_id)
+        transaction_history.append(f"Funded {address[:10]}... with {funding_amount} microALGOs")
 
     # Create UCTZAR ASA
     uctzar_id = create_asa(client, creator_address, creator_private_key, 1000000000)
+    transaction_history.append(f"Created UCTZAR ASA with ID: {uctzar_id}")
 
     # Opt-in to UCTZAR
     for address, pk in [(lp1_address, lp1_private_key), (lp2_address, lp2_private_key),
                         (trader1_address, trader1_private_key), (trader2_address, trader2_private_key),
                         (pool_address, pool_private_key)]:
         opt_in_asa(client, address, pk, uctzar_id)
+        transaction_history.append(f"{address[:10]}... opted in to UCTZAR")
 
     # Transfer initial UCTZAR to LPs, traders, and pool
     params = client.suggested_params()
@@ -216,13 +226,15 @@ def fund_creator():
     for address in [lp1_address, lp2_address, trader1_address, trader2_address, pool_address]:
         txn = AssetTransferTxn(creator_address, params, address, uctzar_transfer_amount, uctzar_id)
         signed_txn = txn.sign(creator_private_key)
-        client.send_transaction(signed_txn)
-        wait_for_confirmation(client, signed_txn.get_txid())
+        tx_id = client.send_transaction(signed_txn)
+        wait_for_confirmation(client, tx_id)
+        transaction_history.append(f"Transferred {uctzar_transfer_amount} microUCTZAR to {address[:10]}...")
 
     # Create liquidity pool
     pool = LiquidityPool(100000, 200000)  # 0.1 ALGO = 0.2 UCTZAR
+    transaction_history.append("Created liquidity pool")
 
-    return jsonify({"success": True, "message": "Creator funded and UCTZAR created"})
+    return jsonify({"success": True, "message": "Creator funded and UCTZAR created", "uctzar_id": uctzar_id})
 
 
 @app.route('/add_liquidity', methods=['POST'])
@@ -242,6 +254,8 @@ def add_liquidity():
         tx_id = add_liquidity_atomic(client, lp_address, lp_private_key, pool_address, algo_amount, uctzar_amount,
                                      uctzar_id)
         pool.add_liquidity(algo_amount, uctzar_amount)
+        transaction_history.append(
+            f"{lp_address[:10]}... added {algo_amount} microALGOs and {uctzar_amount} microUCTZAR to the pool")
         return jsonify({"success": True, "message": f"Liquidity added. Transaction ID: {tx_id}"})
     except Exception as e:
         return jsonify({"error": str(e)})
@@ -265,10 +279,14 @@ def swap():
             amount_out = int(pool.swap_algo_to_uctzar(amount_in))
             tx_id = swap_atomic(client, trader_address, trader_private_key, pool_address, pool_private_key, amount_in,
                                 0, amount_out, uctzar_id)
+            transaction_history.append(
+                f"{trader_address[:10]}... swapped {amount_in} microALGOs for {amount_out} microUCTZAR")
         else:
             amount_out = int(pool.swap_uctzar_to_algo(amount_in))
             tx_id = swap_atomic(client, trader_address, trader_private_key, pool_address, pool_private_key, amount_in,
                                 uctzar_id, amount_out, 0)
+            transaction_history.append(
+                f"{trader_address[:10]}... swapped {amount_in} microUCTZAR for {amount_out} microALGOs")
 
         return jsonify(
             {"success": True, "message": f"Swap completed. Transaction ID: {tx_id}", "amount_out": amount_out})
@@ -287,6 +305,23 @@ def pool_info():
         "lp_tokens": pool.lp_tokens,
         "fees": pool.fees
     })
+
+
+@app.route('/account_balances', methods=['GET'])
+def account_balances():
+    balances = {}
+    for address in [creator_address, lp1_address, lp2_address, trader1_address, trader2_address, pool_address]:
+        account_info = client.account_info(address)
+        algo_balance = account_info.get('amount', 0)
+        uctzar_balance = next(
+            (asset['amount'] for asset in account_info.get('assets', []) if asset['asset-id'] == uctzar_id), 0)
+        balances[address] = {"algo": algo_balance, "uctzar": uctzar_balance}
+    return jsonify(balances)
+
+
+@app.route('/transaction_history', methods=['GET'])
+def get_transaction_history():
+    return jsonify(transaction_history)
 
 
 if __name__ == '__main__':
